@@ -1,11 +1,11 @@
-﻿# Builds the distributable installer package under System-Setup\dist
+# Builds the distributable installer package under System-Setup\dist
 param([switch]$NoZip)
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot          # System-Setup
 $pkg = $PSScriptRoot
 $dist = Join-Path $root 'dist'
-$name = 'UNLOCK-DIGITAL-Widgets-v1.3.0'
+$name = 'UNLOCK-DIGITAL-Widgets-v1.4.0'
 $stage = Join-Path $dist $name
 
 if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }

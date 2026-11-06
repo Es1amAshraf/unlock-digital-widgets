@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<a href="https://github.com/Es1amAshraf/unlock-digital-widgets/releases/latest"><img src="assets/badges/version.svg" alt="Version 1.3.0"></a>
+<a href="https://github.com/Es1amAshraf/unlock-digital-widgets/releases/latest"><img src="assets/badges/version.svg" alt="Version 1.4.0"></a>
 <a href="https://learn.microsoft.com/en-us/powershell/"><img src="assets/badges/powershell.svg" alt="PowerShell 5.1+"></a>
 <a href="https://www.microsoft.com/windows"><img src="assets/badges/platform.svg" alt="Windows 10 | 11"></a>
 <a href="LICENSE"><img src="assets/badges/license.svg" alt="License MIT"></a>
@@ -18,36 +18,43 @@ A modern, lightweight, glassmorphic desktop customization & widgets suite built 
 
 ## 🌟 المميزات الرئيسية (Features)
 
-تتضمن الحزمة 8 ويدجتس قابلة للتخصيص بالكامل ومصممة بنمط زجاجي (Fluent Glass):
+تتضمن الحزمة ويدجتس احترافية متكاملة مصممة بنمط زجاجي (Fluent Glass):
 
-1. **الدوك الزجاجي (macOS-style Dock):**
+1. **الجزيرة التفاعلية (Dynamic Island / Media Pill) 🆕:**
+   - كبسولة علوية انسيابية عائمة أعلى منتصف الشاشة (مستوحاة من iOS و ModernFlyouts).
+   - إشعارات تفاعلية لمستوى الصوت، تبديل المقاطع الموسيقية، حالة شحن البطارية وفتح التطبيقات.
+   - موجات صوتية نابضة بالذكاء الحركي مع تلاشي ناعم وتلقائي بعد 4 ثوانٍ.
+
+2. **الدوك الزجاجي و Stacks الرفوف (macOS-style Dock & Stacks) 🆕:**
    - شريط تطبيقات انسيابي أسفل الشاشة مع تأثيرات التكبير والتفاعل (Hover Magnification).
-   - إمكانية إضافة وسحب وترتيب التطبيقات بسهولة، مع مؤشرات النقاط للبرامج المفتوحة حالياً.
-   - البقاء خلف النوافذ النشطة على سطح المكتب دون أن يطفو فوق برامجك أثناء العمل.
+   - **Downloads Stack:** استعراض أحدث الملفات المحملة وقائمة الملفات بضغطة واحدة مع أيقوناتها الأصلية.
+   - **سلة المهملات التفاعلية (Recycle Bin):** عداد شارات ذكي لعدد العناصر المحذوفة، مع إمكانية إفراغ السلة بنقرة واحدة.
+   - إمكانية إضافة وسحب وترتيب التطبيقات بسهولة، مع مؤشرات النقاط للبرامج المفتوحة حالياً وبقاؤه خلف النوافذ النشطة.
 
-2. **شاشة المراقبة اللحظية (System HUD):**
+3. **شاشة المراقبة اللحظية (System HUD):**
    - متابعة حية لمعدل استهلاك المعالج (CPU)، والذاكرة العشوائية (RAM)، وسرعة نقل الشبكة (Rx / Tx).
    - قياس معدل الاستجابة اللحظي (Ping)، وعرض الـ IP الداخلي والخارجي مع خيار الحجب للأمان.
 
-3. **الساعة الرقمية (Digital Clock):**
+4. **الساعة الرقمية (Digital Clock):**
    - تصميم زجاجي أنيق مع الثواني، والتاريخ الميلادي، وشارة يوم الأسبوع، ودعم نظام 12/24 ساعة.
 
-4. **الطقس ومواقيت الصلاة الدقيقة (Weather & Cairo Prayer Times):**
+5. **الطقس ومواقيت الصلاة الدقيقة (Weather & Cairo Prayer Times):**
    - جلب مباشر لبيانات الطقس (درجة الحرارة، نسبة الرطوبة، وحالة الجو) عبر Open-Meteo.
    - حساب دقيق لمواقيت الصلاة الخمس بالقاهرة (هيئة المساحة المصرية - طريقة 5) مع التاريخ الهجري.
    - محرك جلب بيانات غير متزامن (C# Async) لضمان ثبات النظام بنسبة 100% دون استهلاك موارد.
 
-5. **ويدجت الموسيقى والوسائط (Music & Media Player):**
-   - ربط مباشر بنظام الوسائط في ويندوز (SMTC) للتحكم في (Spotify, Anghami, YouTube, المتصفحات).
+6. **ويدجت الموسيقى مع معادل حي (Music & Live Audio Visualizer) 🆕:**
+   - **Live Audio Visualizer:** 16 عموداً متحركاً متناغماً مع الإيقاع ينبض في الوقت الفعلي أثناء تشغيل المقاطع الصوتية.
+   - ربط مباشر بنظام الوسائط في ويندوز (SMTC) للتحكم في (Spotify, Anghami, YouTube, والمتصفحات).
    - استخراج غلاف الألبوم بدقة عالية، وعرض اسم الفنان والتراك مع شريط التقدم والتحكم الكامل.
 
-6. **التقويم الشهري التفاعلي (Interactive Calendar):**
+7. **التقويم الشهري التفاعلي (Interactive Calendar):**
    - استعراض الشهر الحالي مع تمييز اليوم النشط وإمكانية التنقل السريع بين الشهور.
 
-7. **مؤقّت التركيز (Focus Pomodoro Timer):**
+8. **مؤقّت التركيز (Focus Pomodoro Timer):**
    - نظام إنتاجية 25 دقيقة عمل و 5 دقائق استراحة مع تنبيهات عند الانتهاء.
 
-8. **الملاحظات السريعة (Quick Notes):**
+9. **الملاحظات السريعة (Quick Notes):**
    - مفكرة زجاجية عائمة تدعم الحفظ التلقائي الفوري (`notes.txt`)، وعداد الحروف، والتحريك السلس بالماوس مع قائمة كليك يمين متكاملة.
 
 ---
@@ -80,7 +87,7 @@ A modern, lightweight, glassmorphic desktop customization & widgets suite built 
 ## 🚀 التثبيت السريع (Quick Installation)
 
 1. حمّل أحدث حزمة تثبيت من [GitHub Releases](../../releases).
-2. فك ضغط الملف المضغوط `UNLOCK-DIGITAL-Widgets-v1.3.0.zip`.
+2. فك ضغط الملف المضغوط `UNLOCK-DIGITAL-Widgets-v1.4.0.zip`.
 3. اضغط مرتين على `Install.cmd`.
 4. حدد خياراتك المفضلة واضغط **Install**.
 5. ستعمل الويدجتس فوراً وستجد اختصارات التحكم في قائمة Start Menu تحت مجلد `UNLOCK DIGITAL`.

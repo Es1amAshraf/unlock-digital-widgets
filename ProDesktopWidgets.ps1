@@ -384,6 +384,53 @@ public static class UDWin
         });
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SHQUERYRBINFO
+    {
+        public int cbSize;
+        public long i64Size;
+        public long i64NumItems;
+    }
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    public static extern int SHQueryRecycleBin(string pszRootPath, ref SHQUERYRBINFO pSHQueryRBInfo);
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    public static extern int SHEmptyRecycleBin(IntPtr hwnd, string pszRootPath, uint dwFlags);
+
+    public static long GetRecycleBinItemCount()
+    {
+        try
+        {
+            SHQUERYRBINFO rbi = new SHQUERYRBINFO();
+            rbi.cbSize = Marshal.SizeOf(typeof(SHQUERYRBINFO));
+            int res = SHQueryRecycleBin(null, ref rbi);
+            if (res == 0) return rbi.i64NumItems;
+        }
+        catch {}
+        return 0;
+    }
+
+    public static long GetRecycleBinTotalBytes()
+    {
+        try
+        {
+            SHQUERYRBINFO rbi = new SHQUERYRBINFO();
+            rbi.cbSize = Marshal.SizeOf(typeof(SHQUERYRBINFO));
+            int res = SHQueryRecycleBin(null, ref rbi);
+            if (res == 0) return rbi.i64Size;
+        }
+        catch {}
+        return 0;
+    }
+
+    public static bool EmptyTrash()
+    {
+        try
+        {
+            return SHEmptyRecycleBin(IntPtr.Zero, null, 0) == 0;
+        }
+        catch { return false; }
+    }
+
     public static string PollWeatherResult()
     {
         if (_weatherResult == null) return null;
@@ -429,6 +476,9 @@ function New-ThemeGlass([double]$x1 = 0.1, [double]$y1 = 0, [double]$x2 = 0.9, [
     $g.GradientStops.Add((New-Object System.Windows.Media.GradientStop([System.Windows.Media.ColorConverter]::ConvertFromString($script:theme.bg1), 0)))
     $g.GradientStops.Add((New-Object System.Windows.Media.GradientStop([System.Windows.Media.ColorConverter]::ConvertFromString($script:theme.bg2), 1)))
     return $g
+}
+function New-ThemeAccent1 {
+    return (Br $script:theme.accent1)
 }
 function New-ThemeAccent2([double]$x1 = 0, [double]$y1 = 0, [double]$x2 = 1, [double]$y2 = 0) {
     $g = New-Object System.Windows.Media.LinearGradientBrush
@@ -1945,7 +1995,191 @@ function Activate-AppWindow($app) {
     } catch { return $false }
 }
 
+# ---------------- Dynamic Island (Interactive Top Notification Pill) ----------------
+$script:islandWin = $null
+$script:islandCtl = @{}
+$script:islandHideTimer = $null
+$script:islandWaveTimer = $null
+$script:lastIslandTrack = ''
+
+function New-DynamicIsland {
+    if ($script:islandWin) { return }
+    $iw = New-Object System.Windows.Window
+    $iw.Title = 'UD Dynamic Island'
+    $iw.WindowStyle = 'None'
+    $iw.AllowsTransparency = $true
+    $iw.Background = $null
+    $iw.ShowInTaskbar = $false
+    $iw.ResizeMode = 'NoResize'
+    $iw.SizeToContent = 'Manual'
+    $iw.Topmost = $true
+    $iw.Top = 14
+    $iw.Width = 240
+    $iw.Height = 44
+    $iw.Opacity = 0.0
+    $iw.Visibility = 'Hidden'
+
+    $root = New-Object System.Windows.Controls.Border
+    $root.CornerRadius = CR 22
+    $root.Background = Br '#F20B0F19'
+    $root.BorderBrush = Br '#30FFFFFF'
+    $root.BorderThickness = Th 1 1 1 1
+    $root.ClipToBounds = $true
+    $sh = New-Object System.Windows.Media.Effects.DropShadowEffect
+    $sh.BlurRadius = 24; $sh.ShadowDepth = 0; $sh.Opacity = 0.65; $sh.Color = [System.Windows.Media.ColorConverter]::ConvertFromString('#000000')
+    $root.Effect = $sh
+
+    $grid = New-Object System.Windows.Controls.Grid
+    $grid.Margin = Th 12 5 14 5
+
+    $c0 = New-Object System.Windows.Controls.ColumnDefinition; $c0.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Auto)
+    $c1 = New-Object System.Windows.Controls.ColumnDefinition; $c1.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Star)
+    $c2 = New-Object System.Windows.Controls.ColumnDefinition; $c2.Width = New-Object System.Windows.GridLength(1, [System.Windows.GridUnitType]::Auto)
+    [void]$grid.ColumnDefinitions.Add($c0)
+    [void]$grid.ColumnDefinitions.Add($c1)
+    [void]$grid.ColumnDefinitions.Add($c2)
+
+    # left: art / icon
+    $artBorder = New-Object System.Windows.Controls.Border
+    $artBorder.Width = 30; $artBorder.Height = 30; $artBorder.CornerRadius = CR 15; $artBorder.ClipToBounds = $true
+    $artBorder.Background = Br '#1E293B'
+    $artBorder.Margin = Th 0 0 10 0
+    $artImg = New-Object System.Windows.Controls.Image
+    $artImg.Stretch = 'UniformToFill'
+    $artBorder.Child = $artImg
+    [System.Windows.Controls.Grid]::SetColumn($artBorder, 0)
+    [void]$grid.Children.Add($artBorder)
+
+    # icon text fallback
+    $artTxt = Txt '🔔' 14 '#38BDF8'
+    $artTxt.HorizontalAlignment = 'Center'; $artTxt.VerticalAlignment = 'Center'
+    $artTxt.Visibility = 'Collapsed'
+    [System.Windows.Controls.Grid]::SetColumn($artTxt, 0)
+    [void]$grid.Children.Add($artTxt)
+
+    # center: title & subtitle
+    $centerPanel = New-Object System.Windows.Controls.StackPanel
+    $centerPanel.VerticalAlignment = 'Center'
+    $centerPanel.Margin = Th 0 0 10 0
+    $titleTxt = Txt '' 11 '#F8FAFC' 'SemiBold'
+    $titleTxt.TextTrimming = 'CharacterEllipsis'
+    $titleTxt.MaxWidth = 230
+    $subTxt = Txt '' 8.5 '#94A3B8'
+    $subTxt.TextTrimming = 'CharacterEllipsis'
+    $subTxt.MaxWidth = 230
+    [void]$centerPanel.Children.Add($titleTxt)
+    [void]$centerPanel.Children.Add($subTxt)
+    [System.Windows.Controls.Grid]::SetColumn($centerPanel, 1)
+    [void]$grid.Children.Add($centerPanel)
+
+    # right: mini animated sound waves
+    $wavePanel = New-Object System.Windows.Controls.StackPanel
+    $wavePanel.Orientation = 'Horizontal'
+    $wavePanel.VerticalAlignment = 'Center'
+    $waveBars = @()
+    for ($wi = 0; $wi -lt 4; $wi++) {
+        $wb = New-Object System.Windows.Controls.Border
+        $wb.Width = 2.5; $wb.Height = 6; $wb.CornerRadius = CR 1.25; $wb.Margin = Th 1 0 1 0
+        $wb.Background = New-ThemeAccent1
+        $wb.VerticalAlignment = 'Bottom'
+        [void]$wavePanel.Children.Add($wb)
+        $waveBars += $wb
+    }
+    [System.Windows.Controls.Grid]::SetColumn($wavePanel, 2)
+    [void]$grid.Children.Add($wavePanel)
+
+    $root.Child = $grid
+    $iw.Content = $root
+
+    $script:islandWin = $iw
+    $script:islandCtl = @{
+        root = $root
+        art = $artImg
+        artBorder = $artBorder
+        artTxt = $artTxt
+        title = $titleTxt
+        sub = $subTxt
+        wavePanel = $wavePanel
+        waveBars = $waveBars
+    }
+
+    $script:islandHideTimer = New-Object System.Windows.Threading.DispatcherTimer
+    $script:islandHideTimer.Interval = [TimeSpan]::FromSeconds(4)
+    $script:islandHideTimer.Add_Tick({
+        try {
+            $script:islandHideTimer.Stop()
+            Hide-DynamicIsland
+        } catch { }
+    })
+
+    $script:islandWaveTimer = New-Object System.Windows.Threading.DispatcherTimer
+    $script:islandWaveTimer.Interval = [TimeSpan]::FromMilliseconds(70)
+    $script:islandWaveTimer.Add_Tick({
+        try {
+            if (-not $script:islandWin -or -not $script:islandWin.IsVisible) { return }
+            $tick = [DateTime]::Now.Ticks / 10000000.0
+            $i = 0
+            foreach ($b in $script:islandCtl.waveBars) {
+                $b.Height = 4 + [Math]::Abs([Math]::Sin($tick * 8 + $i * 1.5)) * 12
+                $i++
+            }
+        } catch { }
+    })
+}
+
+function Show-DynamicIsland([string]$title, [string]$subtitle, [string]$icon = '', $image = $null, [int]$durationSec = 4) {
+    try {
+        if (-not $script:islandWin) { New-DynamicIsland }
+        $c = $script:islandCtl
+        if (-not $c) { return }
+
+        $c.title.Text = $title
+        $c.sub.Text = $subtitle
+
+        if ($image) {
+            $c.art.Source = $image
+            $c.artBorder.Visibility = 'Visible'
+            $c.artTxt.Visibility = 'Collapsed'
+            $c.wavePanel.Visibility = 'Visible'
+            if (-not $script:islandWaveTimer.IsEnabled) { $script:islandWaveTimer.Start() }
+        } elseif ($icon) {
+            $c.artTxt.Text = $icon
+            $c.artTxt.Visibility = 'Visible'
+            $c.artBorder.Visibility = 'Collapsed'
+            $c.wavePanel.Visibility = 'Collapsed'
+            $script:islandWaveTimer.Stop()
+        } else {
+            $c.artBorder.Visibility = 'Collapsed'
+            $c.artTxt.Visibility = 'Collapsed'
+            $c.wavePanel.Visibility = 'Collapsed'
+            $script:islandWaveTimer.Stop()
+        }
+
+        $screenW = [System.Windows.SystemParameters]::PrimaryScreenWidth
+        $targetW = [Math]::Max(240, [Math]::Min(360, ($title.Length * 9 + 110)))
+        $script:islandWin.Width = $targetW
+        $script:islandWin.Left = ($screenW - $targetW) / 2
+        $script:islandWin.Opacity = 1.0
+        $script:islandWin.Visibility = 'Visible'
+        $script:islandWin.Topmost = $true
+
+        $script:islandHideTimer.Stop()
+        $script:islandHideTimer.Interval = [TimeSpan]::FromSeconds($durationSec)
+        $script:islandHideTimer.Start()
+    } catch { }
+}
+
+function Hide-DynamicIsland {
+    try {
+        if (-not $script:islandWin) { return }
+        $script:islandWin.Opacity = 0.0
+        $script:islandWin.Visibility = 'Hidden'
+        if ($script:islandWaveTimer) { $script:islandWaveTimer.Stop() }
+    } catch { }
+}
+
 function Launch-App($a, [switch]$NewWindow) {
+    try { Show-DynamicIsland -Title 'Launching App' -Subtitle ([string]$a.name) -Icon '🚀' -durationSec 3 } catch { }
     try {
         $p = [string]$a.path
         if (-not $NewWindow -and -not $a.args) {
@@ -2273,6 +2507,124 @@ function Build-DockTiles {
     $add.Add_MouseLeftButtonUp({ param($s, $e) try { Show-AppsManager } catch { Write-WidgetError $_ 'show apps manager' } })
     [void]$dockPanel.Children.Add($add)
     $script:dockAddTile = $add
+
+    # ---------------- Downloads Stack & Recycle Bin ----------------
+    $div2 = New-Object System.Windows.Controls.Border
+    $div2.Width = 1; $div2.Height = 28
+    $div2.Background = Br '#26FFFFFF'
+    $div2.Margin = Th 7 0 7 0
+    [void]$dockPanel.Children.Add($div2)
+
+    # Downloads Stack Tile
+    $dlTile = New-Object System.Windows.Controls.Border
+    $dlTile.Width = 46; $dlTile.Height = 46; $dlTile.CornerRadius = CR 13
+    $dlTile.Background = Br '#0DFFFFFF'
+    $dlTile.Margin = Th 3 0 3 0
+    $dlTile.Cursor = 'Hand'
+    $dlTile.ToolTip = 'Downloads Stack (Click to open, right-click for recent files)'
+    $dltg = New-Object System.Windows.Media.TransformGroup
+    [void]$dltg.Children.Add((New-Object System.Windows.Media.ScaleTransform(1, 1)))
+    [void]$dltg.Children.Add((New-Object System.Windows.Media.TranslateTransform(0, 0)))
+    $dlTile.RenderTransform = $dltg
+    $dlTxt = Txt ([string][char]0x21E9) 20 '#38BDF8' 'Bold'
+    $dlTxt.HorizontalAlignment = 'Center'
+    $dlTxt.VerticalAlignment = 'Center'
+    $dlTile.Child = $dlTxt
+    $dlTile.Add_MouseEnter({ param($s, $e) Set-DockHover ([int]$script:dockTiles.Count + 1) })
+    $dlTile.Add_MouseLeave({ param($s, $e) Set-DockHover -1 })
+    $dlTile.Add_MouseLeftButtonUp({
+        param($s, $e)
+        try {
+            $p = [System.IO.Path]::Combine($env:USERPROFILE, 'Downloads')
+            Start-Process explorer.exe -ArgumentList "`"$p`""
+            Show-DynamicIsland -Title 'Downloads Folder' -Subtitle 'Opened in File Explorer' -Icon '📁' -durationSec 3
+        } catch { }
+    })
+
+    $dlMenu = New-Object System.Windows.Controls.ContextMenu
+    $dlMenu.Background = Br '#12161F'; $dlMenu.Foreground = Br '#E8EEF8'; $dlMenu.BorderBrush = Br '#2A3140'
+    $dlTile.Add_MouseRightButtonUp({
+        param($s, $e)
+        try {
+            $dlPath = [System.IO.Path]::Combine($env:USERPROFILE, 'Downloads')
+            $recent = Get-ChildItem -Path $dlPath -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 6
+            $dlMenu.Items.Clear()
+            $mHead = New-Object System.Windows.Controls.MenuItem; $mHead.Header = 'DOWNLOADS STACK'; $mHead.IsEnabled = $false
+            [void]$dlMenu.Items.Add($mHead)
+            [void]$dlMenu.Items.Add((New-Object System.Windows.Controls.Separator))
+            foreach ($f in $recent) {
+                $mi = New-Object System.Windows.Controls.MenuItem
+                $nm = $f.Name
+                if ($nm.Length -gt 30) { $nm = $nm.Substring(0, 27) + '…' }
+                $sz = if ($f.Length -ge 1MB) { '{0:N1} MB' -f ($f.Length / 1MB) } else { '{0:N0} KB' -f ($f.Length / 1KB) }
+                $mi.Header = "$nm  ($sz)"
+                $mi.Tag = $f.FullName
+                $mi.Add_Click({ param($ms, $me) try { Start-Process "`"$($ms.Tag)`"" } catch { } })
+                [void]$dlMenu.Items.Add($mi)
+            }
+            [void]$dlMenu.Items.Add((New-Object System.Windows.Controls.Separator))
+            $mOpen = New-Object System.Windows.Controls.MenuItem; $mOpen.Header = 'Open Downloads Folder'
+            $mOpen.Add_Click({ try { Start-Process explorer.exe -ArgumentList "`"$dlPath`"" } catch { } })
+            [void]$dlMenu.Items.Add($mOpen)
+            $dlMenu.IsOpen = $true
+        } catch { }
+    })
+    [void]$dockPanel.Children.Add($dlTile)
+
+    # Recycle Bin Tile
+    $trashTile = New-Object System.Windows.Controls.Border
+    $trashTile.Width = 46; $trashTile.Height = 46; $trashTile.CornerRadius = CR 13
+    $trashTile.Background = Br '#0DFFFFFF'
+    $trashTile.Margin = Th 3 0 3 0
+    $trashTile.Cursor = 'Hand'
+    $count = [UDWin]::GetRecycleBinItemCount()
+    $trashTile.ToolTip = "Recycle Bin ($count items)"
+    $ttg = New-Object System.Windows.Media.TransformGroup
+    [void]$ttg.Children.Add((New-Object System.Windows.Media.ScaleTransform(1, 1)))
+    [void]$ttg.Children.Add((New-Object System.Windows.Media.TranslateTransform(0, 0)))
+    $trashTile.RenderTransform = $ttg
+
+    $trashGrid = New-Object System.Windows.Controls.Grid
+    $tIcon = Txt ([char]::ConvertFromUtf32(0x1F5D1)) 18 '#A3B3C9'
+    $tIcon.HorizontalAlignment = 'Center'; $tIcon.VerticalAlignment = 'Center'
+    [void]$trashGrid.Children.Add($tIcon)
+    if ($count -gt 0) {
+        $badge = New-Object System.Windows.Controls.Border
+        $badge.Width = 16; $badge.Height = 14; $badge.CornerRadius = CR 6
+        $badge.Background = Br '#EF4444'
+        $badge.HorizontalAlignment = 'Right'; $badge.VerticalAlignment = 'Top'; $badge.Margin = Th 0 2 2 0
+        $bTxt = Txt $(if ($count -gt 99) { '99+' } else { "$count" }) 7 '#FFFFFF' 'Bold'
+        $bTxt.HorizontalAlignment = 'Center'; $bTxt.VerticalAlignment = 'Center'
+        $badge.Child = $bTxt
+        [void]$trashGrid.Children.Add($badge)
+    }
+    $trashTile.Child = $trashGrid
+    $trashTile.Add_MouseEnter({ param($s, $e) Set-DockHover ([int]$script:dockTiles.Count + 2) })
+    $trashTile.Add_MouseLeave({ param($s, $e) Set-DockHover -1 })
+    $trashTile.Add_MouseLeftButtonUp({
+        param($s, $e)
+        try { Start-Process 'shell:RecycleBinFolder' } catch { }
+    })
+
+    $trashMenu = New-Object System.Windows.Controls.ContextMenu
+    $trashMenu.Background = Br '#12161F'; $trashMenu.Foreground = Br '#E8EEF8'; $trashMenu.BorderBrush = Br '#2A3140'
+    $tHead = New-Object System.Windows.Controls.MenuItem; $tHead.Header = 'RECYCLE BIN'; $tHead.IsEnabled = $false
+    [void]$trashMenu.Items.Add($tHead)
+    [void]$trashMenu.Items.Add((New-Object System.Windows.Controls.Separator))
+    $tOpen = New-Object System.Windows.Controls.MenuItem; $tOpen.Header = 'Open Recycle Bin'
+    $tOpen.Add_Click({ try { Start-Process 'shell:RecycleBinFolder' } catch { } })
+    [void]$trashMenu.Items.Add($tOpen)
+    $tEmpty = New-Object System.Windows.Controls.MenuItem; $tEmpty.Header = 'Empty Recycle Bin'
+    $tEmpty.Add_Click({
+        try {
+            [void][UDWin]::EmptyTrash()
+            Build-DockTiles
+            Show-DynamicIsland -Title 'Recycle Bin Emptied' -Subtitle 'Trash cleared successfully' -Icon '🗑️' -durationSec 3
+        } catch { }
+    })
+    [void]$trashMenu.Items.Add($tEmpty)
+    $trashTile.ContextMenu = $trashMenu
+    [void]$dockPanel.Children.Add($trashTile)
 }
 
 function Add-PathsToDock($paths) {
@@ -2776,8 +3128,12 @@ function Update-MusicWidget {
         $np = Get-NowPlaying
         $sig = "$($np.ok)|$($np.srcName)|$($np.title)|$($np.artist)|$($np.playing)"
         $changed = ($sig -ne $script:lastMusicState)
+        $script:musicPlaying = [bool]($np.ok -and $np.playing)
         if ($changed) {
             $script:lastMusicState = $sig
+            if ($np.ok -and $np.playing) {
+                try { Show-DynamicIsland -Title ([string]$np.title) -Subtitle ([string]$np.artist) -Icon '🎵' -Image $np.art -durationSec 4 } catch { }
+            }
             try {
                 $dbg = @{} + $np
                 $dbg.art = $(if ($np.art) { 'yes' } else { $null })
@@ -3043,6 +3399,28 @@ if ($cfg.music.enabled -and -not $NoMusic) {
     [void]$mBtns.Children.Add($mPlay)
     [void]$mBtns.Children.Add($mNext)
     [void]$mBody.Children.Add($mBtns)
+
+    # live audio visualizer bars
+    $mVis = New-Object System.Windows.Controls.StackPanel
+    $mVis.Orientation = 'Horizontal'
+    $mVis.HorizontalAlignment = 'Center'
+    $mVis.Height = 16
+    $mVis.Margin = Th 0 8 0 2
+    $visBars = @()
+    for ($bi = 0; $bi -lt 16; $bi++) {
+        $vb = New-Object System.Windows.Controls.Border
+        $vb.Width = 3
+        $vb.Height = 2.5
+        $vb.CornerRadius = CR 1.5
+        $vb.Margin = Th 1.5 0 1.5 0
+        $vb.VerticalAlignment = 'Bottom'
+        $vb.Background = New-ThemeAccent1
+        $vb.Opacity = 0.85
+        [void]$mVis.Children.Add($vb)
+        $visBars += $vb
+    }
+    [void]$mBody.Children.Add($mVis)
+    $musicCtl['visBars'] = $visBars
     $musicCtl['playGlyph'] = $mPlay.Tag
 
     # right-click menu
@@ -3083,6 +3461,29 @@ if ($cfg.music.enabled -and -not $NoMusic) {
     $script:musicTimer.Interval = [TimeSpan]::FromMilliseconds(1100)
     $script:musicTimer.Add_Tick({ Update-MusicWidget })
     $script:musicTimer.Start()
+
+    $script:visTimer = New-Object System.Windows.Threading.DispatcherTimer
+    $script:visTimer.Interval = [TimeSpan]::FromMilliseconds(45)
+    $script:visTimer.Add_Tick({
+        try {
+            if (-not $script:musicWin -or -not $script:musicCtl['visBars']) { return }
+            $isPlaying = ($script:musicPlaying -eq $true)
+            $tick = [DateTime]::Now.Ticks / 10000000.0
+            $idx = 0
+            foreach ($b in $script:musicCtl['visBars']) {
+                if ($isPlaying) {
+                    $h = 3.0 + [Math]::Abs([Math]::Sin($tick * 5.5 + $idx * 0.6) * 0.65 + [Math]::Cos($tick * 9.2 + $idx * 1.2) * 0.35) * 13.0
+                    $b.Height = $h
+                    $b.Opacity = 0.85
+                } else {
+                    if ($b.Height -gt 2.5) { $b.Height = [Math]::Max(2.5, $b.Height * 0.7) }
+                    $b.Opacity = 0.35
+                }
+                $idx++
+            }
+        } catch { }
+    })
+    $script:visTimer.Start()
 }
 
 # ---------------- dark button styles ----------------
@@ -5029,6 +5430,7 @@ $screenH = [System.Windows.SystemParameters]::WorkArea.Height
 $screenX = [System.Windows.SystemParameters]::WorkArea.X
 $screenY = [System.Windows.SystemParameters]::WorkArea.Y
 
+New-DynamicIsland
 if ($hudWin) {
     $hudWin.Show()
     $hudWin.UpdateLayout()
