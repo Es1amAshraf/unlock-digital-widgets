@@ -2,10 +2,10 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.3.0-blue.svg?style=for-the-badge)
-![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-5391FE.svg?style=for-the-badge&logo=powershell&logoColor=white)
-![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6.svg?style=for-the-badge&logo=windows&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
+[![Version](https://img.shields.io/badge/Version-1.3.0-2563EB?style=for-the-badge)](https://github.com/Es1amAshraf/unlock-digital-widgets/releases/latest)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?style=for-the-badge&logo=powershell&logoColor=white)](https://learn.microsoft.com/en-us/powershell/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![License](https://img.shields.io/badge/License-MIT-10B981?style=for-the-badge)](LICENSE)
 
 **حزمة ويدجتس سطح مكتب زجاجية متكاملة واحترافية لنظام ويندوز 10 و 11**  
 A modern, lightweight, glassmorphic desktop customization & widgets suite built natively for Windows.
