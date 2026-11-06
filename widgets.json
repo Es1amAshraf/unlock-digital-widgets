@@ -1,0 +1,285 @@
+﻿{
+    "hud":  {
+                "enabled":  true,
+                "topmost":  false,
+                "side":  "left",
+                "maskIp":  false,
+                "visible":  true,
+                "locked":  false
+            },
+    "dock":  {
+                 "enabled":  true,
+                 "topmost":  false,
+                 "apps":  [
+                              {
+                                  "name":  "Yandex",
+                                  "path":  "C:\\Program Files\\Yandex\\YandexBrowser\\Application\\browser.exe",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "Microsoft Edge",
+                                  "path":  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "Discord",
+                                  "path":  "C:\\Users\\eslam\\AppData\\Local\\Discord\\Discord.exe",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "OpenCode",
+                                  "path":  "C:\\Users\\eslam\\AppData\\Local\\Programs\\@opencodedesktop\\OpenCode.exe",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "Word",
+                                  "path":  "C:\\Program Files\\Microsoft Office\\root\\Office16\\WINWORD.EXE",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "Excel",
+                                  "path":  "C:\\Program Files\\Microsoft Office\\root\\Office16\\EXCEL.EXE",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "Outlook",
+                                  "path":  "C:\\Program Files\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "OneNote",
+                                  "path":  "C:\\Program Files\\Microsoft Office\\root\\Office16\\ONENOTE.EXE",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "VMware Workstation Pro",
+                                  "path":  "C:\\Program Files (x86)\\VMware\\VMware Workstation\\vmware.exe",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "TeamViewer",
+                                  "path":  "C:\\Program Files\\TeamViewer\\TeamViewer.exe",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "File Explorer",
+                                  "path":  "C:\\WINDOWS\\explorer.exe",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "Notepad",
+                                  "path":  "Microsoft.WindowsNotepad_8wekyb3d8bbwe!App",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "Task Manager",
+                                  "path":  "C:\\WINDOWS\\System32\\taskmgr.exe",
+                                  "args":  ""
+                              },
+                              {
+                                  "name":  "Settings",
+                                  "path":  "ms-settings:",
+                                  "args":  ""
+                              }
+                          ],
+                 "autohide":  false,
+                 "effects":  true,
+                 "visible":  true
+             },
+    "music":  {
+                  "enabled":  true,
+                  "topmost":  false,
+                  "x":  1029.3333333333335,
+                  "y":  14.666666666666661,
+                  "visible":  true,
+                  "locked":  false
+              },
+    "clock":  {
+                  "enabled":  true,
+                  "h24":  false,
+                  "x":  966.00000000000011,
+                  "y":  493.33333333333331,
+                  "topmost":  false,
+                  "seconds":  true,
+                  "visible":  true,
+                  "locked":  false
+              },
+    "calendar":  {
+                     "enabled":  true,
+                     "visible":  true,
+                     "topmost":  false,
+                     "locked":  false,
+                     "monday":  false
+                 },
+    "focus":  {
+                  "enabled":  true,
+                  "visible":  true,
+                  "topmost":  false,
+                  "locked":  false,
+                  "workMin":  25,
+                  "breakMin":  5
+              },
+    "notes":  {
+                  "enabled":  true,
+                  "visible":  true,
+                  "topmost":  false,
+                  "locked":  false
+              },
+    "weather":  {
+                    "enabled":  true,
+                    "visible":  true,
+                    "topmost":  false,
+                    "locked":  false,
+                    "showPrayer":  true,
+                    "city":  "Cairo",
+                    "country":  "Egypt",
+                    "lat":  30.0444,
+                    "lon":  31.2357,
+                    "method":  5
+                },
+    "appearance":  {
+                       "theme":  "midnight",
+                       "opacity":  1,
+                       "scale":  100,
+                       "lowPower":  false,
+                       "fullscreenHide":  false
+                   },
+    "profiles":  {
+                     "work":  {
+                                  "label":  "Work",
+                                  "description":  "System HUD, music, clock and weather on the desk.",
+                                  "visible":  {
+                                                  "hud":  true,
+                                                  "dock":  true,
+                                                  "music":  true,
+                                                  "clock":  true,
+                                                  "calendar":  false,
+                                                  "focus":  false,
+                                                  "notes":  true,
+                                                  "weather":  true
+                                              },
+                                  "topmost":  {
+                                                  "hud":  false,
+                                                  "dock":  true,
+                                                  "music":  false,
+                                                  "clock":  false,
+                                                  "calendar":  false,
+                                                  "focus":  false,
+                                                  "notes":  false,
+                                                  "weather":  false
+                                              },
+                                  "locked":  {
+                                                 "hud":  false,
+                                                 "dock":  false,
+                                                 "music":  false,
+                                                 "clock":  false,
+                                                 "calendar":  false,
+                                                 "focus":  false,
+                                                 "notes":  false,
+                                                 "weather":  false
+                                             }
+                              },
+                     "focus":  {
+                                   "label":  "Focus",
+                                   "description":  "Quiet desk: clock, focus timer and HUD only.",
+                                   "visible":  {
+                                                   "hud":  true,
+                                                   "dock":  true,
+                                                   "music":  false,
+                                                   "clock":  true,
+                                                   "calendar":  false,
+                                                   "focus":  true,
+                                                   "notes":  false,
+                                                   "weather":  false
+                                               },
+                                   "topmost":  {
+                                                   "hud":  false,
+                                                   "dock":  false,
+                                                   "music":  false,
+                                                   "clock":  false,
+                                                   "calendar":  false,
+                                                   "focus":  true,
+                                                   "notes":  false,
+                                                   "weather":  false
+                                               },
+                                   "locked":  {
+                                                  "hud":  false,
+                                                  "dock":  false,
+                                                  "music":  false,
+                                                  "clock":  false,
+                                                  "calendar":  false,
+                                                  "focus":  false,
+                                                  "notes":  false,
+                                                  "weather":  false
+                                              }
+                               },
+                     "night":  {
+                                   "label":  "Night",
+                                   "description":  "Dim desk: clock, notes and weather, no HUD or music.",
+                                   "visible":  {
+                                                   "hud":  false,
+                                                   "dock":  true,
+                                                   "music":  false,
+                                                   "clock":  true,
+                                                   "calendar":  false,
+                                                   "focus":  false,
+                                                   "notes":  true,
+                                                   "weather":  true
+                                               },
+                                   "topmost":  {
+                                                   "hud":  false,
+                                                   "dock":  false,
+                                                   "music":  false,
+                                                   "clock":  false,
+                                                   "calendar":  false,
+                                                   "focus":  false,
+                                                   "notes":  false,
+                                                   "weather":  false
+                                               },
+                                   "locked":  {
+                                                  "hud":  false,
+                                                  "dock":  false,
+                                                  "music":  false,
+                                                  "clock":  false,
+                                                  "calendar":  false,
+                                                  "focus":  false,
+                                                  "notes":  false,
+                                                  "weather":  false
+                                              }
+                               },
+                     "game":  {
+                                  "label":  "Game",
+                                  "description":  "Dock only. Fullscreen auto-hide clears the screen while playing.",
+                                  "visible":  {
+                                                  "hud":  false,
+                                                  "dock":  true,
+                                                  "music":  false,
+                                                  "clock":  false,
+                                                  "calendar":  false,
+                                                  "focus":  false,
+                                                  "notes":  false,
+                                                  "weather":  false
+                                              },
+                                  "topmost":  {
+                                                  "hud":  false,
+                                                  "dock":  true,
+                                                  "music":  false,
+                                                  "clock":  false,
+                                                  "calendar":  false,
+                                                  "focus":  false,
+                                                  "notes":  false,
+                                                  "weather":  false
+                                              },
+                                  "locked":  {
+                                                 "hud":  false,
+                                                 "dock":  false,
+                                                 "music":  false,
+                                                 "clock":  false,
+                                                 "calendar":  false,
+                                                 "focus":  false,
+                                                 "notes":  false,
+                                                 "weather":  false
+                                             }
+                              }
+                 }
+}
