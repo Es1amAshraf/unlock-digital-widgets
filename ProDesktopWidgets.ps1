@@ -2830,28 +2830,44 @@ function Get-BrowserWindowNowPlaying {
     try {
         foreach ($raw in $titles) {
             if ([string]::IsNullOrWhiteSpace($raw)) { continue }
-            $marked = ($raw -match '^\s*[▶►⏵\u25B6]')
-            $bullet = ($raw -match '\u2022')
+            $marked = ($raw -match '^\s*[▶►⏵▶]')
             $site = ''
             if ($raw -match '(?i)(anghami|أنغامي)') { $site = 'ANGHAMI' }
             elseif ($raw -match '(?i)(spotify|سبوتيفاي)') { $site = 'SPOTIFY' }
             elseif ($raw -match '(?i)soundcloud') { $site = 'SOUNDCLOUD' }
-            elseif ($raw -match '(?i)(youtube music|يوتيوب)') { $site = 'YOUTUBE' }
-            $clean = $raw -replace '^\s*[▶►⏵⏸⏹\u25B6\u23F8\u23F9]\s*', ''
+            elseif ($raw -match '(?i)(youtube music|يوتيوب|youtube)') { $site = 'YOUTUBE' }
+            elseif ($raw -match '(?i)(deezer|ديزر)') { $site = 'DEEZER' }
+            elseif ($raw -match '(?i)(apple music)') { $site = 'APPLE MUSIC' }
+
+            # STRICT: Window title is ONLY trusted if it explicitly has a media play symbol OR names a verified music service!
+            if (-not $marked -and -not $site) { continue }
+
+            # Blacklist non-music tabs / web apps (both Arabic and English)
+            if ($raw -match '(?i)mail|بريد|inbox|وارد|gmail|yandex|outlook|search|بحث|google|github|facebook|whatsapp|واتساب|telegram|drive|docs|sheet|excel|word|pdf|zoom|teams|meeting|liked songs|web player|sign in|log in|playlist|browse|library|premium|download|queue|leads|crm|portal|^profile') { continue }
+
+            $clean = $raw -replace '^\s*[▶►⏵⏸⏹▶⏸⏹]\s*', ''
             $clean = $clean -replace '(?i),\s*profile\s+[^,–—-]+(?=\s*[-–—|]|$)', ''
-            $clean = $clean -replace '(?i)\s*[\|\-–—•·]\s*(Anghami|أنغامي|Spotify( Web Player)?|سبوتيفاي|YouTube Music|SoundCloud|Deezer|Apple Music|Yandex\s*Browser|Google Chrome|Microsoft.{0,3}Edge|Mozilla Firefox|Brave|Opera|Vivaldi).*$', ''
+            $clean = $clean -replace '(?i)\s*[\|\-–—•·]\s*(Anghami|أنغامي|Spotify( Web Player)?|سبوتيفاي|YouTube( Music)?|يوتيوب|SoundCloud|Deezer|Apple Music|Yandex\s*Browser|Google Chrome|Microsoft.{0,3}Edge|Mozilla Firefox|Brave|Opera|Vivaldi).*$', ''
             $clean = $clean -replace '(?i)[,–—-]\s*profile\s+.*$', ''
             $clean = $clean.Trim()
             if ([string]::IsNullOrWhiteSpace($clean)) { continue }
-            # a bare window title is trusted only when the browser marks it as playing audio or it names a music service
-            if (-not $marked -and -not $site -and -not $bullet) { continue }
-            if ($clean -match '(?i)liked songs|web player|sign in|log in|playlist|browse|search|library|premium|download|queue|inbox|whatsapp|facebook|autodesk|gmail|leads|^profile') { continue }
+
             $parts = @($clean -split '\s*[•·]\s*|\s{2,}|\s+[-–—]\s+')
-            if ($parts.Count -lt 2) { continue }
+            if ($parts.Count -lt 2) {
+                if ($site) {
+                    $res.ok = $true
+                    $res.title = $clean
+                    $res.artist = $site
+                    $res.srcName = $site
+                    $res.playing = $true
+                    return $res
+                }
+                continue
+            }
             $song = ([string]$parts[0]).Trim()
             $artist = ([string]$parts[1]).Trim()
             if ($song.Length -lt 2 -or $artist.Length -lt 2) { continue }
-            if ($song -match '(?i)^(spotify|anghami|أنغامي|youtube( music)?|soundcloud|deezer|apple music|music)$') { continue }
+            if ($song -match '(?i)^(spotify|anghami|أنغامي|youtube( music)?|يوتيوب|soundcloud|deezer|apple music|music)$') { continue }
             $res.ok = $true
             $res.title = $song
             $res.artist = $artist
@@ -2894,25 +2910,30 @@ function Get-BrowserTabsNowPlaying {
 
         function Parse-TabTitle([string]$raw, [bool]$trusted) {
             if ([string]::IsNullOrWhiteSpace($raw)) { return $null }
-            $clean = $raw -replace '^\s*[▶►⏵⏸⏹\u25B6\u23F8\u23F9]\s*', ''
+            if ($raw -match '(?i)mail|بريد|inbox|وارد|gmail|yandex|outlook|search|بحث|google|github|facebook|whatsapp|واتساب|telegram|drive|docs|sheet|excel|word|pdf|zoom|teams|meeting|liked songs|web player|sign in|log in|playlist|browse|library|premium|download|home|queue|autodesk|leads|crm|portal|^profile') { return $null }
+
+            $clean = $raw -replace '^\s*[▶►⏵⏸⏹▶⏸⏹]\s*', ''
             $clean = $clean -replace '(?i),\s*profile\s+[^,–—-]+(?=\s*[-–—|]|$)', ''
-            $clean = $clean -replace '(?i)\s*[\|\-–—•·]\s*(Anghami|أنغامي|Spotify( Web Player)?|سبوتيفاي|YouTube Music|SoundCloud|Deezer|Apple Music|Yandex\s*Browser|Google Chrome|Microsoft.{0,3}Edge|Mozilla Firefox|Brave|Opera|Vivaldi).*$', ''
+            $clean = $clean -replace '(?i)\s*[\|\-–—•·]\s*(Anghami|أنغامي|Spotify( Web Player)?|سبوتيفاي|YouTube( Music)?|يوتيوب|SoundCloud|Deezer|Apple Music|Yandex\s*Browser|Google Chrome|Microsoft.{0,3}Edge|Mozilla Firefox|Brave|Opera|Vivaldi).*$', ''
             $clean = $clean.Trim()
             if ([string]::IsNullOrWhiteSpace($clean)) { return $null }
-            if ($clean -match '(?i)^(spotify|anghami|أنغامي|youtube( music)?|soundcloud|deezer|apple music|music)$') { return $null }
-            if ($clean -match '(?i)liked songs|profile|web player|sign in|log in|playlist|browse|search|library|premium|download|home|queue|inbox|whatsapp|facebook|autodesk|gmail|leads') { return $null }
+            if ($clean -match '(?i)^(spotify|anghami|أنغامي|youtube( music)?|يوتيوب|soundcloud|deezer|apple music|music)$') { return $null }
+
             $sep = '\s*[•·]\s*|\s{2,}|\s+[–—]\s+'
             if ($trusted) { $sep = '\s*[•·]\s*|\s{2,}|\s+[-–—]\s+' }
             $parts = @($clean -split $sep)
-            if ($parts.Count -lt 2) { return $null }
+            if ($parts.Count -lt 2) {
+                if ($trusted) { return @{ title = $clean; artist = 'Music' } }
+                return $null
+            }
             $song = ([string]$parts[0]).Trim()
             $artist = ([string]$parts[1]).Trim()
             if ($song.Length -lt 2 -or $artist.Length -lt 2) { return $null }
-            if ($song -match '(?i)^(spotify|anghami|أنغامي|youtube|soundcloud|deezer|apple music)$') { return $null }
+            if ($song -match '(?i)^(spotify|anghami|أنغامي|youtube|يوتيوب|soundcloud|deezer|apple music)$') { return $null }
             return @{ title = $song; artist = $artist }
         }
 
-        # 1) the browser marks the tab that is playing audio (speaker icon) — the most reliable signal
+        # 1) the browser marks the tab that is actively playing audio (speaker icon)
         for ($i = 0; $i -lt $tabs.Count; $i++) {
             if ($tabs[$i].media) {
                 $h = Parse-TabTitle ([string]$tabs[$i].name) $true
@@ -2928,38 +2949,48 @@ function Get-BrowserTabsNowPlaying {
             }
         }
 
-        # 2) the tab whose title carries a music-site name (idle or playing)
+        # 2) verified music sites only (Spotify, Anghami, YouTube, SoundCloud...)
         $siteIdx = -1; $siteTag = ''
         for ($i = 0; $i -lt $tabs.Count; $i++) {
-            if ($tabs[$i].name -match '(?i)(spotify|anghami|أنغامي|سبوتيفاي|youtube music|soundcloud|deezer|apple music)') {
+            if ($tabs[$i].name -match '(?i)(spotify|anghami|أنغامي|سبوتيفاي|youtube|يوتيوب|soundcloud|deezer|apple music|tidal)') {
                 $siteIdx = $i
                 $siteTag = ([string]$matches[1]).ToUpper()
                 break
             }
         }
-        if ($siteIdx -ge 0) { $script:musicTabIdx = $siteIdx }
-
-        # 3) the tab we already learned -> read its title (trust it even after the site name disappears while playing)
-        $hit = $null
-        $idx = $script:musicTabIdx
-        if ($idx -ge 0 -and $idx -lt $tabs.Count) {
-            $hit = Parse-TabTitle ([string]$tabs[$idx].name) $true
-        }
-
-        # 4) nothing learned yet: look for a "song • artist" tab
-        if (-not $hit) {
-            for ($i = 0; $i -lt $tabs.Count; $i++) {
-                $h = Parse-TabTitle ([string]$tabs[$i].name) ($siteIdx -eq $i)
-                if ($h) { $hit = $h; $script:musicTabIdx = $i; break }
+        if ($siteIdx -ge 0) {
+            $h = Parse-TabTitle ([string]$tabs[$siteIdx].name) $true
+            if ($h) {
+                $script:musicTabIdx = $siteIdx
+                $res.ok = $true
+                $res.title = $h.title
+                $res.artist = $h.artist
+                $res.srcName = $(if ($siteTag) { $siteTag } else { 'BROWSER' })
+                $res.playing = [bool]$tabs[$siteIdx].media
+                return $res
             }
         }
-        if (-not $hit) { return (Get-BrowserWindowNowPlaying) }
 
-        $res.ok = $true
-        $res.title = $hit.title
-        $res.artist = $hit.artist
-        $res.srcName = $(if ($siteTag) { $siteTag } else { 'BROWSER' })
-        $res.playing = $true
+        # 3) previously remembered music tab (must still have audio playing or be on a verified music site)
+        $idx = $script:musicTabIdx
+        if ($idx -ge 0 -and $idx -lt $tabs.Count) {
+            $tabName = [string]$tabs[$idx].name
+            if ($tabs[$idx].media -or $tabName -match '(?i)(spotify|anghami|أنغامي|سبوتيفاي|youtube|يوتيوب|soundcloud|deezer|apple music)') {
+                $hit = Parse-TabTitle $tabName $true
+                if ($hit) {
+                    $res.ok = $true
+                    $res.title = $hit.title
+                    $res.artist = $hit.artist
+                    $res.srcName = 'BROWSER'
+                    $res.playing = [bool]$tabs[$idx].media
+                    return $res
+                }
+            }
+        }
+        $script:musicTabIdx = -1
+
+        # NOTE: NEVER scan random silent tabs! If no tab is playing media or on a music service, return nothing.
+        return (Get-BrowserWindowNowPlaying)
     } catch { }
     return $res
 }
@@ -3055,7 +3086,18 @@ function Get-NowPlaying {
                     foreach ($s in $sessions) {
                         try { if ([string]$s.GetPlaybackInfo().PlaybackStatus -eq 'Playing') { $pick = $s; break } } catch { }
                     }
-                    if (-not $pick) { $pick = $sessions[0] }
+                    if (-not $pick) {
+                        foreach ($s in $sessions) {
+                            $src = [string]$s.SourceAppUserModelId
+                            if ($src -match '(?i)spotify|vlc|zune|mediaplayer|music\.ui|aimp|foobar|winamp|apple') {
+                                $pick = $s; break
+                            }
+                        }
+                    }
+                    if (-not $pick) {
+                        # Do not pick up random dormant browser tabs
+                        $pick = $null
+                    }
                     $script:smtcSession = $pick
                     $props = Await-WinRt ($pick.TryGetMediaPropertiesAsync()) $script:SMTC_PROPS
                     if ($props -and -not [string]::IsNullOrWhiteSpace([string]$props.Title)) {
