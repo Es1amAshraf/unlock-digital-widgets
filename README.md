@@ -16,16 +16,23 @@ A modern, lightweight, glassmorphic desktop customization & widgets suite built 
 
 ---
 
+## 🆕 التحسينات الأخيرة على `main` (Post-v1.4.0 Updates)
+
+- **تحسين دقة التقاط الوسائط (`SMTC`):** إضافة فلترة صارمة لتبويبات المتصفحات لمنع التقاط صفحات غير موسيقية مثل البريد (`Mail`)، مع حماية إضافية (`Null-Session Guard`) داخل `Get-NowPlaying` في [`ProDesktopWidgets.ps1`](ProDesktopWidgets.ps1) عند عدم وجود جلسة تشغيل فعالة.
+- **تحميل أسرع للشارات:** تضمين أيقونات الشارات (`assets/badges/*.svg`) محلياً لعرض فوري بدون الاعتماد على خدمات خارجية.
+
+---
+
 ## 🌟 المميزات الرئيسية (Features)
 
 تتضمن الحزمة ويدجتس احترافية متكاملة مصممة بنمط زجاجي (Fluent Glass):
 
-1. **الجزيرة التفاعلية (Dynamic Island / Media Pill) 🆕:**
+1. **الجزيرة التفاعلية (Dynamic Island / Media Pill):**
    - كبسولة علوية انسيابية عائمة أعلى منتصف الشاشة (مستوحاة من iOS و ModernFlyouts).
    - إشعارات تفاعلية لمستوى الصوت، تبديل المقاطع الموسيقية، حالة شحن البطارية وفتح التطبيقات.
    - موجات صوتية نابضة بالذكاء الحركي مع تلاشي ناعم وتلقائي بعد 4 ثوانٍ.
 
-2. **الدوك الزجاجي و Stacks الرفوف (macOS-style Dock & Stacks) 🆕:**
+2. **الدوك الزجاجي و Stacks الرفوف (macOS-style Dock & Stacks):**
    - شريط تطبيقات انسيابي أسفل الشاشة مع تأثيرات التكبير والتفاعل (Hover Magnification).
    - **Downloads Stack:** استعراض أحدث الملفات المحملة وقائمة الملفات بضغطة واحدة مع أيقوناتها الأصلية.
    - **سلة المهملات التفاعلية (Recycle Bin):** عداد شارات ذكي لعدد العناصر المحذوفة، مع إمكانية إفراغ السلة بنقرة واحدة.
@@ -43,9 +50,9 @@ A modern, lightweight, glassmorphic desktop customization & widgets suite built 
    - حساب دقيق لمواقيت الصلاة الخمس بالقاهرة (هيئة المساحة المصرية - طريقة 5) مع التاريخ الهجري.
    - محرك جلب بيانات غير متزامن (C# Async) لضمان ثبات النظام بنسبة 100% دون استهلاك موارد.
 
-6. **ويدجت الموسيقى مع معادل حي (Music & Live Audio Visualizer) 🆕:**
+6. **ويدجت الموسيقى مع معادل حي (Music & Live Audio Visualizer):**
    - **Live Audio Visualizer:** 16 عموداً متحركاً متناغماً مع الإيقاع ينبض في الوقت الفعلي أثناء تشغيل المقاطع الصوتية.
-   - ربط مباشر بنظام الوسائط في ويندوز (SMTC) للتحكم في (Spotify, Anghami, YouTube, والمتصفحات).
+   - ربط مباشر بنظام الوسائط في ويندوز (SMTC) للتحكم في (Spotify, Anghami, YouTube, والمتصفحات) مع استثناء التبويبات غير الصوتية.
    - استخراج غلاف الألبوم بدقة عالية، وعرض اسم الفنان والتراك مع شريط التقدم والتحكم الكامل.
 
 7. **التقويم الشهري التفاعلي (Interactive Calendar):**
@@ -59,17 +66,29 @@ A modern, lightweight, glassmorphic desktop customization & widgets suite built 
 
 ---
 
+## 📁 هيكلة المشروع (Project Structure)
+
+```text
+unlock-digital-widgets/
+├── ProDesktopWidgets.ps1      # المحرك الرئيسي للويدجتس والجزيرة التفاعلية والدوك
+├── ProDesktopWidgets.vbs      # مشغل صامت في الخلفية بدون نافذة Terminal
+├── Set-ProDesktop.ps1         # إعداد وتنسيق سطح المكتب والـ Taskbar تلقائياً
+├── New-ProWallpaper.ps1       # مولد خلفيات 4K ديناميكية (Pro)
+├── New-LuxWallpaper.ps1       # مولد خلفيات زجاجية فاخرة (Lux)
+├── New-Win11Wallpaper.ps1     # مولد خلفيات بنمط Windows 11 Bloom
+├── assets/                    # الأيقونات وشارات SVG المضمنة محلياً
+└── packaging/                 # سكربت بناء حزمة التوزيع (Build-Package.ps1) والمثبت
+```
+
+---
+
 ## 🎨 قسم المظهر والتخصيص (Appearance & Profiles)
 
 تحكم كامل من خلال نافذة **Widgets Manager**:
 - **5 ثيمات زجاجية:** Midnight (الافتراضي)، Slate، AMOLED، Amber، Cyan.
 - **مستوى الشفافية (Opacity):** تحكم دقيق من 55% إلى 100%.
 - **تحجيم الويدجتس (Scale):** خيارات تكبير وتصغير (85%, 100%, 115%).
-- **أوضاع مسبقة (Profiles):**
-  - **Work:** تفعيل أدوات الإنتاجية، الساعة، الطقس، النوتس، والـ HUD.
-  - **Focus:** هدوء كامل، إبقاء الساعة ومؤقت التركيز فقط.
-  - **Night:** واجهة ليلية هادئة مع الساعة والنوتس والطقس.
-  - **Game:** الدوك فقط مع تحسين الأداء.
+- **أوضاع مسبقة (Profiles):** **Work**, **Focus**, **Night**, **Game**.
 - **وضع توفير الطاقة (Low-Power Mode):** تقليل دورة تحديث الـ HUD للحفاظ على طاقة البطارية.
 - **قفل وتحريك المواقع:** إمكانية سحب أي ويدجت وقفل مكانه على الشاشة.
 
@@ -96,7 +115,6 @@ A modern, lightweight, glassmorphic desktop customization & widgets suite built 
 
 ## 🛠️ البناء من المصدر (Building from Source)
 
-لإنشاء حزمة التثبيت بنفسك:
 ```powershell
 # استنساخ المستودع
 git clone https://github.com/Es1amAshraf/unlock-digital-widgets.git
@@ -111,5 +129,5 @@ powershell -ExecutionPolicy Bypass -File .\packaging\Build-Package.ps1
 
 ## 📄 الترخيص (License)
 
-هذا المشروع مرخص تحت رخصة [MIT License](LICENSE).
+هذا المشروع مرخص تحت رخصة [MIT License](LICENSE).  
 جميع الحقوق محفوظة لـ **UNLOCK DIGITAL**.

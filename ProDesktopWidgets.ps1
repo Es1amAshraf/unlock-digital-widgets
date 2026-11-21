@@ -3094,13 +3094,10 @@ function Get-NowPlaying {
                             }
                         }
                     }
-                    if (-not $pick) {
-                        # Do not pick up random dormant browser tabs
-                        $pick = $null
-                    }
-                    $script:smtcSession = $pick
-                    $props = Await-WinRt ($pick.TryGetMediaPropertiesAsync()) $script:SMTC_PROPS
-                    if ($props -and -not [string]::IsNullOrWhiteSpace([string]$props.Title)) {
+                    if ($pick) {
+                        $script:smtcSession = $pick
+                        $props = Await-WinRt ($pick.TryGetMediaPropertiesAsync()) $script:SMTC_PROPS
+                        if ($props -and -not [string]::IsNullOrWhiteSpace([string]$props.Title)) {
                         $info = $pick.GetPlaybackInfo()
                         $tl = $pick.GetTimelineProperties()
                         $res.ok = $true
@@ -3114,6 +3111,7 @@ function Get-NowPlaying {
                         $res.srcName = Get-MusicSourceName $res.source
                         $key = "$($res.source)|$($res.title)|$($res.artist)"
                         $res.art = Get-CachedArtwork $key { Get-SmtcArtwork $props }
+                    }
                     }
                 }
             }
